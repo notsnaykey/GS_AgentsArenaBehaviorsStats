@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Behavior Completion Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-cyan-400: #22d3ee;
+      --color-cyan-500: #06b6d4;
+      --color-cyan-300: #67e8f9;
+      --color-gray-400: #9ca3af;
+      --color-gray-500: #6b7280;
+      --color-gray-600: #4b5563;
+      --color-gray-700: #374151;
+      --color-gray-800: #1f2937;
+      --color-gray-900: #111827;
+      --color-red-500: #ef4444;
+      --color-green-500: #22c55e;
+      --color-green-300: #86efac;
+      --color-incomplete: var(--color-gray-400);
+      --color-incomplete-dim: var(--color-gray-500);
+      --color-warning: orange;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-size: 12px; }
+    body { font-family: 'Space Mono', monospace; background-color: #000; color: #fff; min-height: 100vh; padding: 1rem; display: flex; flex-direction: column; align-items: center; }
+    .container { width: 100%; max-width: 1000px; padding: 1rem; border: 2px solid var(--color-cyan-500); background-color: var(--color-gray-900); margin-bottom: 1rem; }
+    .title { font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem; letter-spacing: 0.1em; color: var(--color-cyan-400); text-align: center; }
+    .instructions p { color: var(--color-gray-400); margin-bottom: 10px; font-size: 0.85rem; line-height: 1.5; }
+    .instructions .success-text { color: var(--color-green-500); font-weight: bold; }
+    .instructions .incomplete-text { color: var(--color-incomplete); font-weight: bold; }
+    .instructions .warning-text { color: var(--color-warning); font-weight: bold; }
+
+    textarea.count-input { width: 100%; min-height: 200px; background-color: var(--color-gray-800); color: white; border: 1px solid var(--color-gray-700); padding: 10px; font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 1rem; }
+    textarea.count-input:focus { outline: none; border-color: var(--color-cyan-500); }
+    .count-btn { padding: 0.6rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; font-weight: bold; border: none; cursor: pointer; color: white; transition: transform 0.2s, opacity 0.2s; background-color: var(--color-cyan-500); display: block; width: 100%; margin-bottom: 1rem; }
+    .count-btn:hover { transform: translateY(-2px); opacity: 0.9; background-color: var(--color-cyan-400); }
+
+    #resultArea { margin-top: 1rem; padding: 0.5rem; border: 1px solid var(--color-gray-700); background-color: var(--color-gray-800); min-height: 100px; max-height: 75vh; overflow-y: auto; display: flex; flex-direction: column; }
+    #resultArea h3 { color: var(--color-cyan-400); margin: 0.5rem 0; font-size: 1.1rem; padding-bottom: 0.3rem; flex-shrink: 0; }
+    #resultArea pre#summaryResults { white-space: pre-wrap; word-wrap: break-word; font-size: 0.8rem; color: var(--color-gray-400); line-height: 1.5; margin-bottom: 0em; padding: 0.5em; border-bottom: 1px dashed var(--color-gray-700); background-color: var(--color-gray-900); flex-shrink: 0; }
+
+    /* Behavior Success Summary Grid */
+    #behaviorSuccessSummary { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.5em 0.8em; padding: 0.8em 0.5em; margin-bottom: 1em; border-bottom: 1px solid var(--color-cyan-500); flex-shrink: 0; }
+    #behaviorSuccessSummary h4 { color: var(--color-green-300); font-size: 0.95rem; margin-bottom: 0.5em; grid-column: 1 / -1; border-bottom: 1px dotted var(--color-gray-700); padding-bottom: 0.2em; }
+    .summary-item { display: flex; flex-direction: column; padding: 0.3em 0.4em; font-size: 0.8rem; background-color: var(--color-gray-900); border-left: 3px solid var(--color-gray-700); }
+    .summary-item-header { display: flex; justify-content: space-between; align-items: baseline; cursor: pointer; }
+    .summary-behavior-name { color: var(--color-gray-400); flex-grow: 1; margin-right: 0.5em; }
+    .summary-behavior-count { color: var(--color-green-300); font-weight: bold; white-space: nowrap; font-size: 0.9em;}
+    .summary-toggle-indicator { font-size: 0.8rem; width: 1.5em; text-align: center; color: var(--color-gray-400); }
+      
+    /* Collapsible content in summary items */
+    .summary-item-content { display: none; margin-top: 0.5em; border-top: 1px dotted var(--color-gray-600); padding-top: 0.5em; }
+    .summary-item-content.open { display: block; }
+    .summary-model-list { list-style: none; max-height: 150px; overflow-y: auto; margin-top: 0.3em; padding-left: 0.3em; }
+    .summary-model-list li { color: var(--color-incomplete); font-size: 0.75rem; margin-bottom: 0.2em; }
+    .summary-incomplete-label { color: var(--color-incomplete-dim); font-size: 0.75rem; margin-bottom: 0.2em; }
+    .summary-no-models { color: var(--color-gray-500); font-style: italic; font-size: 0.75rem; }
+
+    /* Behavior Details Section */
+    #behaviorDetailsContainer { flex-grow: 1; overflow-y: auto; }
+    .behavior-entry { border-bottom: 1px solid var(--color-gray-700); margin-bottom: 0.5em; padding-bottom: 0.5em; }
+    .behavior-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0.4em 0.3em; background-color: var(--color-gray-700); transition: background-color 0.2s; z-index: 1; }
+    .behavior-header:hover { background-color: var(--color-gray-600); }
+    .behavior-entry .behavior-name { font-weight: bold; color: var(--color-cyan-300); font-size: 0.9rem; flex-grow: 1; margin-right: 1em; }
+    .behavior-counts { font-size: 0.75rem; white-space: nowrap; margin-right: 1em; }
+    .count-completed { color: var(--color-green-300); }
+    .count-incomplete { color: var(--color-incomplete-dim); }
+    .toggle-indicator { font-size: 0.8rem; width: 1.5em; text-align: center; color: var(--color-gray-400); }
+    .behavior-content { display: none; padding: 0.5em 0.5em 0.2em 0em; background-color: rgba(31, 41, 55, 0.2); }
+    .behavior-content.open { display: block; }
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5em; margin-top: 0.5em; padding-left: 0.5em; }
+    .grid-column h4 { font-size: 0.85rem; margin-bottom: 0.4em; padding-bottom: 0.2em; border-bottom: 1px dotted var(--color-gray-700); }
+    .model-list { list-style: none; padding-left: 0.5em; font-size: 0.8rem; line-height: 1.4; max-height: 200px; overflow-y: auto; }
+    .model-list li { margin-bottom: 0.2em; }
+    .model-completed { color: var(--color-green-300); }
+    .model-incomplete { color: var(--color-incomplete); }
+    .no-models { color: var(--color-gray-500); font-style: italic; }
+
+    .warning-footer { grid-column: 1 / -1; margin-top: 1em; }
+    .warning-footer p { color: var(--color-warning); font-weight: bold; font-size: 0.85rem; margin-top: 0.5em; }
+
+    hr.section-separator { border: 0; height: 1px; background-color: var(--color-cyan-500); margin: 1em 0; flex-shrink: 0;}
+    .back-link { display: inline-block; margin-top: 1.5rem; padding: 0.5rem 1rem; background-color: var(--color-gray-700); color: var(--color-cyan-400); text-decoration: none; font-weight: bold; border: 1px solid var(--color-cyan-500); transition: background-color 0.2s; }
+    .back-link:hover { background-color: var(--color-gray-800); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">📋 Behavior Completion Tracker</h1>
+    <div class="instructions">
+      <p>
+        Paste HTML source <b>while Submissions tab is selected -> right click -> Inspect and copy Element < div class = mt-3 h-full px-2 ></b> below to generate a report of <span class="success-text">completed</span> and <span class="incomplete-text">incomplete</span> models for each behavior.
+      </p>
+      <p>
+        Click on any behavior to see which models still need testing. Note: models that have been tested but <span class="incomplete-text">failed</span> are also considered incomplete.
+      </p>
+    </div>
+    <textarea class="count-input" id="submissionHtmlInput" placeholder="Paste HTML source code here..."></textarea>
+    <button class="count-btn" id="processCountBtn">Generate Behavior Report</button>
+    <div id="resultArea">
+      <h3>Results:</h3>
+      <pre id="summaryResults">Processing summary will appear here...</pre>
+      <div id="behaviorSuccessSummary">
+        <h4>Total Successes per Behavior (Desc):</h4>
+      </div>
+      <hr class="section-separator">
+      <h3>Behavior Details (Alphabetical):</h3>
+      <div id="behaviorDetailsContainer"></div>
+      <div id="warningFooter" class="warning-footer"></div>
+    </div>
+  </div>
+  <a href="index.html" class="back-link">« Back to Main Tracker</a>
+
+  <script>
+    /**
+     * Main data structure for tracking behavior results
+     */
+    class TrackerData {
+      constructor() {
+        this.allModels = new Set();       // All models found in the input
+        this.allBehaviors = new Set();    // All behaviors found in the input
+        this.successesByBehavior = {};    // Behavior -> Set of models that succeeded
+        this.testsByBehavior = {};        // Behavior -> Set of models that were tested (success or failure)
+      }
+      
+      addRecord(model, behavior, isSuccess) {
+        this.allModels.add(model);
+        this.allBehaviors.add(behavior);
+        if (!this.successesByBehavior[behavior]) this.successesByBehavior[behavior] = new Set();
+        if (!this.testsByBehavior[behavior]) this.testsByBehavior[behavior] = new Set();
+        this.testsByBehavior[behavior].add(model);
+        if (isSuccess) this.successesByBehavior[behavior].add(model);
+      }
+      
+      getSuccessfulModels(behavior) {
+        return [...(this.successesByBehavior[behavior] || new Set())].sort();
+      }
+      
+      getTestedModels(behavior) {
+        return [...(this.testsByBehavior[behavior] || new Set())].sort();
+      }
+      
+      getIncompleteModels(behavior) {
+        const allModelsArray = [...this.allModels];
+        const successfulModels = this.successesByBehavior[behavior] || new Set();
+        return allModelsArray.filter(model => !successfulModels.has(model)).sort();
+      }
+      
+      getSuccessCountByBehavior() {
+        const result = {};
+        for (const behavior of this.allBehaviors) {
+          const successSet = this.successesByBehavior[behavior] || new Set();
+          result[behavior] = successSet.size;
+        }
+        return result;
+      }
+      
+      getSummary() {
+        return {
+          modelCount: this.allModels.size,
+          behaviorCount: this.allBehaviors.size,
+          successes: this.getSuccessCountByBehavior()
+        };
+      }
+    }
+
+    /**
+     * Parse HTML for test results
+     */
+    function parseHtmlForTestResults(htmlString) {
+      try {
+        const trackerData = new TrackerData();
+        let processedCount = 0, skippedCount = 0, errorCount = 0;
+        const warnings = [];
+        
+        // Parse the HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, 'text/html');
+        const submissionItems = doc.querySelectorAll('li.group');
+        
+        if (submissionItems.length === 0) {
+          warnings.push("No items found matching 'li.group'.");
+        }
+        
+        // Process each item
+        submissionItems.forEach((li, index) => {
+          try {
+            processedCount++;
+            
+            // Get the elements we need
+            const textDiv = li.querySelector('.font-sm.max-w-64');
+            const svg = li.querySelector('svg.lucide-icon');
+            
+            if (!textDiv || !svg) {
+              skippedCount++;
+              return;
+            }
+            
+            // Determine if success or failure
+            const isSuccessIcon = svg.classList.contains('lucide-circle-check-big');
+            const isFailureIcon = svg.classList.contains('lucide-circle-x');
+            
+            if (!isSuccessIcon && !isFailureIcon) {
+              skippedCount++;
+              return;
+            }
+            
+            // Parse the text to get model and behavior
+            const fullText = textDiv.textContent.trim();
+            const parts = fullText.split(' - ');
+            
+            if (parts.length !== 2) {
+              skippedCount++;
+              return;
+            }
+            
+            const modelName = parts[0].trim();
+            const behaviorName = parts[1].trim();
+            
+            if (!modelName || !behaviorName) {
+              skippedCount++;
+              return;
+            }
+            
+            // Add to our data structure
+            trackerData.addRecord(modelName, behaviorName, isSuccessIcon);
+            
+          } catch (error) {
+            console.error(`Error processing item ${index}:`, error);
+            errorCount++;
+          }
+        });
+        
+        // After processing all items, return the results
+        return {
+          trackerData,
+          processed: processedCount,
+          skipped: skippedCount,
+          errors: errorCount,
+          warnings
+        };
+      } catch (error) {
+        console.error("Critical error parsing HTML:", error);
+        return {
+          trackerData: new TrackerData(),
+          processed: 0,
+          skipped: 0,
+          errors: 1,
+          warnings: ["Critical error: " + error.message]
+        };
+      }
+    }
+
+    /**
+     * Display the test results in the UI
+     */
+    function displayTestResults(parseResult) {
+      try {
+        const { trackerData, processed, skipped, errors, warnings } = parseResult;
+        const summary = trackerData.getSummary();
+        
+        // Get DOM elements
+        const summaryElement = document.getElementById('summaryResults');
+        const behaviorSummaryDiv = document.getElementById('behaviorSuccessSummary');
+        const behaviorDetailsContainer = document.getElementById('behaviorDetailsContainer');
+        const warningFooterDiv = document.getElementById('warningFooter');
+        
+        // Display processing summary
+        let summaryText = `--- Processing Summary ---\n`;
+        summaryText += `Total Items Processed: ${processed}\n`;
+        summaryText += `Total Models Found: ${summary.modelCount}\n`;
+        summaryText += `Total Behaviors Found: ${summary.behaviorCount}\n`;
+        summaryText += `Items Skipped: ${skipped}\n`;
+        summaryText += `Errors: ${errors}\n`;
+        
+        if (warnings && warnings.length > 0) {
+          summaryText += `Warnings: ${warnings.length}\n`;
+          summaryElement.style.color = 'orange';
+        } else if (errors > 0) {
+          summaryElement.style.color = 'var(--color-red-500)';
+        } else {
+          summaryElement.style.color = 'var(--color-gray-400)';
+        }
+        
+        summaryElement.textContent = summaryText;
+        
+        // Clear previous content
+        behaviorSummaryDiv.innerHTML = '';
+        behaviorDetailsContainer.innerHTML = '';
+        warningFooterDiv.innerHTML = '';
+        
+        // Behavior Success Summary Grid
+        const summaryHeading = document.createElement('h4');
+        summaryHeading.textContent = 'Total Successes per Behavior (Desc)';
+        behaviorSummaryDiv.appendChild(summaryHeading);
+        
+        // Sort behaviors by success count (descending)
+        const sortedBehaviors = [...trackerData.allBehaviors].sort((a, b) => {
+          const countA = trackerData.successesByBehavior[a] ? trackerData.successesByBehavior[a].size : 0;
+          const countB = trackerData.successesByBehavior[b] ? trackerData.successesByBehavior[b].size : 0;
+          return countB - countA;
+        });
+        
+        if (sortedBehaviors.length > 0) {
+          sortedBehaviors.forEach(behavior => {
+            const successCount = trackerData.successesByBehavior[behavior] ? trackerData.successesByBehavior[behavior].size : 0;
+            const incompleteModels = trackerData.getIncompleteModels(behavior);
+            
+            // Create grid item
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'summary-item';
+            
+            // Header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'summary-item-header';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'summary-behavior-name';
+            nameSpan.textContent = behavior;
+            headerDiv.appendChild(nameSpan);
+            
+            const countSpan = document.createElement('span');
+            countSpan.className = 'summary-behavior-count';
+            countSpan.textContent = successCount;
+            headerDiv.appendChild(countSpan);
+            
+            const toggleSpan = document.createElement('span');
+            toggleSpan.className = 'summary-toggle-indicator';
+            toggleSpan.textContent = '►';
+            headerDiv.appendChild(toggleSpan);
+            
+            // Make header clickable
+            headerDiv.onclick = () => {
+              const contentDiv = itemDiv.querySelector('.summary-item-content');
+              contentDiv.classList.toggle('open');
+              toggleSpan.textContent = contentDiv.classList.contains('open') ? '▼' : '►';
+            };
+            
+            itemDiv.appendChild(headerDiv);
+            
+            // Collapsible content
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'summary-item-content';
+            
+            const incompleteLabel = document.createElement('div');
+            incompleteLabel.className = 'summary-incomplete-label';
+            incompleteLabel.textContent = `Incomplete Models (${incompleteModels.length}):`;
+            contentDiv.appendChild(incompleteLabel);
+            
+            const modelList = document.createElement('ul');
+            modelList.className = 'summary-model-list';
+            
+            if (incompleteModels.length > 0) {
+              incompleteModels.forEach(model => {
+                const li = document.createElement('li');
+                li.textContent = model;
+                modelList.appendChild(li);
+              });
+            } else {
+              const li = document.createElement('li');
+              li.className = 'summary-no-models';
+              li.textContent = 'None (All models completed)';
+              modelList.appendChild(li);
+            }
+            
+            contentDiv.appendChild(modelList);
+            itemDiv.appendChild(contentDiv);
+            behaviorSummaryDiv.appendChild(itemDiv);
+          });
+        } else {
+          const emptyDiv = document.createElement('div');
+          emptyDiv.textContent = 'No behaviors found.';
+          emptyDiv.style.color = 'var(--color-gray-500)';
+          emptyDiv.style.fontSize = '0.8rem';
+          emptyDiv.style.gridColumn = '1 / -1';
+          behaviorSummaryDiv.appendChild(emptyDiv);
+        }
+        
+        // Behavior Details Section
+        const alphabeticalBehaviors = [...trackerData.allBehaviors].sort();
+        
+        if (alphabeticalBehaviors.length > 0) {
+          alphabeticalBehaviors.forEach(behavior => {
+            const successfulModels = trackerData.getSuccessfulModels(behavior);
+            const incompleteModels = trackerData.getIncompleteModels(behavior);
+            
+            // Create behavior entry
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'behavior-entry';
+            
+            // Header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'behavior-header';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'behavior-name';
+            nameSpan.textContent = behavior;
+            headerDiv.appendChild(nameSpan);
+            
+            const countsSpan = document.createElement('span');
+            countsSpan.className = 'behavior-counts';
+            countsSpan.innerHTML = `(<span class="count-completed">Completed: ${successfulModels.length}</span>, <span class="count-incomplete">Incomplete: ${incompleteModels.length}</span>)`;
+            headerDiv.appendChild(countsSpan);
+            
+            const indicatorSpan = document.createElement('span');
+            indicatorSpan.className = 'toggle-indicator';
+            indicatorSpan.textContent = '►';
+            headerDiv.appendChild(indicatorSpan);
+            
+            // Toggle functionality
+            headerDiv.onclick = () => {
+              const contentDiv = entryDiv.querySelector('.behavior-content');
+              contentDiv.classList.toggle('open');
+              indicatorSpan.textContent = contentDiv.classList.contains('open') ? '▼' : '►';
+            };
+            
+            entryDiv.appendChild(headerDiv);
+            
+            // Content (Grid)
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'behavior-content';
+            
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'grid-container';
+            
+            // Completed Column
+            const completedCol = document.createElement('div');
+            completedCol.className = 'grid-column';
+            
+            const completedHeading = document.createElement('h4');
+            completedHeading.className = 'model-completed';
+            completedHeading.textContent = 'Completed Models:';
+            completedCol.appendChild(completedHeading);
+            
+            const completedList = document.createElement('ul');
+            completedList.className = 'model-list';
+            
+            if (successfulModels.length > 0) {
+              successfulModels.forEach(model => {
+                const li = document.createElement('li');
+                li.className = 'model-completed';
+                li.textContent = model;
+                completedList.appendChild(li);
+              });
+            } else {
+              const li = document.createElement('li');
+              li.className = 'no-models';
+              li.textContent = 'None';
+              completedList.appendChild(li);
+            }
+            
+            completedCol.appendChild(completedList);
+            gridContainer.appendChild(completedCol);
+            
+            // Incomplete Column
+            const incompleteCol = document.createElement('div');
+            incompleteCol.className = 'grid-column';
+            
+            const incompleteHeading = document.createElement('h4');
+            incompleteHeading.className = 'model-incomplete';
+            incompleteHeading.textContent = 'Incomplete Models:';
+            incompleteCol.appendChild(incompleteHeading);
+            
+            const incompleteList = document.createElement('ul');
+            incompleteList.className = 'model-list';
+            
+            if (incompleteModels.length > 0) {
+              incompleteModels.forEach(model => {
+                const li = document.createElement('li');
+                li.className = 'model-incomplete';
+                li.textContent = model;
+                incompleteList.appendChild(li);
+              });
+            } else {
+              const li = document.createElement('li');
+              li.className = 'no-models';
+              li.textContent = 'None (All models completed)';
+              incompleteList.appendChild(li);
+            }
+            
+            incompleteCol.appendChild(incompleteList);
+            gridContainer.appendChild(incompleteCol);
+            
+            contentDiv.appendChild(gridContainer);
+            entryDiv.appendChild(contentDiv);
+            behaviorDetailsContainer.appendChild(entryDiv);
+          });
+        } else {
+          behaviorDetailsContainer.textContent = 'No behaviors found in the input data.';
+        }
+        
+        // Display warnings
+        if (warnings && warnings.length > 0) {
+          const p = document.createElement('p');
+          p.textContent = "NOTE: Some items were skipped or warnings occurred. Check console (F12) for details.";
+          p.style.color = "orange";
+          p.style.fontStyle = "italic";
+          p.style.fontSize = "0.8rem";
+          warningFooterDiv.appendChild(p);
+        }
+      } catch (error) {
+        console.error("Error displaying test results:", error);
+        document.getElementById('summaryResults').textContent = `Display Error: ${error.message}. Check console.`;
+        document.getElementById('summaryResults').style.color = 'var(--color-red-500)';
+      }
+    }
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', () => {
+      const processBtn = document.getElementById('processCountBtn');
+      const htmlInput = document.getElementById('submissionHtmlInput');
+      const summaryResultsPre = document.getElementById('summaryResults');
+      
+      processBtn.addEventListener('click', () => {
+        try {
+          const htmlString = htmlInput.value;
+          
+          if (!htmlString.trim()) {
+            summaryResultsPre.textContent = 'Error: HTML input cannot be empty.';
+            summaryResultsPre.style.color = 'var(--color-red-500)';
+            document.getElementById('behaviorSuccessSummary').innerHTML = '<h4>Total Successes per Behavior (Desc):</h4>';
+            document.getElementById('behaviorDetailsContainer').innerHTML = '';
+            document.getElementById('warningFooter').innerHTML = '';
+            return;
+          }
+          
+          summaryResultsPre.textContent = 'Processing... please wait.';
+          summaryResultsPre.style.color = 'var(--color-gray-400)';
+          document.getElementById('behaviorSuccessSummary').innerHTML = '<h4>Total Successes per Behavior (Desc):</h4>';
+          document.getElementById('behaviorDetailsContainer').innerHTML = '';
+          document.getElementById('warningFooter').innerHTML = '';
+          
+          processBtn.disabled = true;
+          
+          // Process with a small delay to allow UI to update
+          setTimeout(() => {
+            try {
+              const parseResult = parseHtmlForTestResults(htmlString);
+              displayTestResults(parseResult);
+            } catch (error) {
+              console.error("Error during processing:", error);
+              summaryResultsPre.textContent = `Critical Error: ${error.message}. Check console.`;
+              summaryResultsPre.style.color = 'var(--color-red-500)';
+            } finally {
+              processBtn.disabled = false;
+            }
+          }, 50);
+        } catch (error) {
+          console.error("Error in click handler:", error);
+          summaryResultsPre.textContent = `Critical Error: ${error.message}. Check console.`;
+          summaryResultsPre.style.color = 'var(--color-red-500)';
+          processBtn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
