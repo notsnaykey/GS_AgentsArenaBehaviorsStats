@@ -30,7 +30,7 @@
     body { font-family: 'Space Mono', monospace; background-color: #000; color: #fff; min-height: 100vh; padding: 1rem; display: flex; flex-direction: column; align-items: center; }
     .container { width: 100%; max-width: 1000px; padding: 1rem; border: 2px solid var(--color-cyan-500); background-color: var(--color-gray-900); margin-bottom: 1rem; }
     .title { font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem; letter-spacing: 0.1em; color: var(--color-cyan-400); text-align: center; }
-    .instructions p { color: var(--color-gray-400); margin-bottom: 10px; font-size: 0.85rem; line-height: 1.5; }
+    .instructions p { color: var(--color-gray-400); margin-bottom: 10px; font-size: 1rem; line-height: 1.5; }
     .instructions .success-text { color: var(--color-green-500); font-weight: bold; }
     .instructions .incomplete-text { color: var(--color-incomplete); font-weight: bold; }
     .instructions .warning-text { color: var(--color-warning); font-weight: bold; }
@@ -93,10 +93,11 @@
   <div class="container">
     <h1 class="title">📋 Behavior Completion Tracker</h1>
     <div class="instructions">
-      <p>
-        Paste HTML source <b>while Submissions tab is selected -> right click -> Inspect and copy Element < div class = mt-3 h-full px-2 ></b> below to generate a report of <span class="success-text">completed</span> and <span class="incomplete-text">incomplete</span> models for each behavior.
+      <p style="text-align: center">
+        Navigate to Submissions tab, right click ➡️ Inspect and find <i>div class="mt-3 h-full px-2"</i> ➡️ Copy - Copy element  ➡️ Paste below
       </p>
-      <p>
+	  <div style="display: flex; align-items: center; justify-content: center; font-size: 2rem"><img src="arena.PNG" /> ➡️ <img src="arena2.PNG" /></div><br>
+      <p style="text-align: center">
         Click on any behavior to see which models still need testing. Note: models that have been tested but <span class="incomplete-text">failed</span> are also considered incomplete.
       </p>
     </div>
@@ -107,14 +108,11 @@
       <pre id="summaryResults">Processing summary will appear here...</pre>
       <div id="behaviorSuccessSummary">
         <h4>Total Successes per Behavior (Desc):</h4>
-      </div>
-      <hr class="section-separator">
-      <h3>Behavior Details (Alphabetical):</h3>
-      <div id="behaviorDetailsContainer"></div>
+      </div
       <div id="warningFooter" class="warning-footer"></div>
     </div>
   </div>
-  <a href="index.html" class="back-link">« Back to Main Tracker</a>
+  <a href="https://notsnaykey.github.io/GS_AgentsArenaTracker/" class="back-link">« Back to manual Tracker</a>
 
   <script>
     /**
