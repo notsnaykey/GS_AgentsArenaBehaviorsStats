@@ -29,30 +29,50 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-size: 12px; }
     body { font-family: 'Space Mono', monospace; background-color: #000; color: #fff; min-height: 100vh; padding: 1rem; display: flex; flex-direction: column; align-items: center; }
     .container { width: 100%; max-width: 1000px; padding: 1rem; border: 2px solid var(--color-cyan-500); background-color: var(--color-gray-900); margin-bottom: 1rem; }
-    .title { font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem; letter-spacing: 0.1em; color: var(--color-cyan-400); text-align: center; }
+    .title { font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem; letter-spacing: 0.1em; color: var(--color-cyan-400); text-align: center; line-height: 1.5; }
+    .title::before {
+      content: "📋";
+      font-size: 2.5rem;
+      vertical-align: middle;
+      margin-right: 0.3em;
+    }
+    .instructions { width: 100%; max-width: 800px; margin: 0 auto; text-align: center; }
     .instructions p { color: var(--color-gray-400); margin-bottom: 10px; font-size: 1rem; line-height: 1.5; }
     .instructions .success-text { color: var(--color-green-500); font-weight: bold; }
     .instructions .incomplete-text { color: var(--color-incomplete); font-weight: bold; }
     .instructions .warning-text { color: var(--color-warning); font-weight: bold; }
+
+    .image-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .image-container img {
+      vertical-align: middle;
+    }
+    .emoji {
+      font-size: 2rem;
+    }
 
     textarea.count-input { width: 100%; min-height: 200px; background-color: var(--color-gray-800); color: white; border: 1px solid var(--color-gray-700); padding: 10px; font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 1rem; }
     textarea.count-input:focus { outline: none; border-color: var(--color-cyan-500); }
     .count-btn { padding: 0.6rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 0.9rem; font-weight: bold; border: none; cursor: pointer; color: white; transition: transform 0.2s, opacity 0.2s; background-color: var(--color-cyan-500); display: block; width: 100%; margin-bottom: 1rem; }
     .count-btn:hover { transform: translateY(-2px); opacity: 0.9; background-color: var(--color-cyan-400); }
 
-    #resultArea { margin-top: 1rem; padding: 0.5rem; border: 1px solid var(--color-gray-700); background-color: var(--color-gray-800); min-height: 100px; max-height: 75vh; overflow-y: auto; display: flex; flex-direction: column; }
-    #resultArea h3 { color: var(--color-cyan-400); margin: 0.5rem 0; font-size: 1.1rem; padding-bottom: 0.3rem; flex-shrink: 0; }
-    #resultArea pre#summaryResults { white-space: pre-wrap; word-wrap: break-word; font-size: 0.8rem; color: var(--color-gray-400); line-height: 1.5; margin-bottom: 0em; padding: 0.5em; border-bottom: 1px dashed var(--color-gray-700); background-color: var(--color-gray-900); flex-shrink: 0; }
+    #resultArea { margin-top: 1rem; padding: 0.5rem; border: 1px solid var(--color-gray-700); background-color: var(--color-gray-800); min-height: 100px; max-height: 75vh; overflow-y: auto; }
+    #resultArea h3 { color: var(--color-cyan-400); margin: 0.5rem 0; font-size: 1.1rem; padding-bottom: 0.3rem; text-align: center; }
+    #resultArea pre#summaryResults { width: 100%; white-space: pre-wrap; word-wrap: break-word; font-size: 0.8rem; color: var(--color-gray-400); line-height: 1.5; margin-bottom: 0em; padding: 0.5em; border-bottom: 1px dashed var(--color-gray-700); background-color: var(--color-gray-900); text-align: left; }
 
     /* Behavior Success Summary Grid */
-    #behaviorSuccessSummary { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.5em 0.8em; padding: 0.8em 0.5em; margin-bottom: 1em; border-bottom: 1px solid var(--color-cyan-500); flex-shrink: 0; }
-    #behaviorSuccessSummary h4 { color: var(--color-green-300); font-size: 0.95rem; margin-bottom: 0.5em; grid-column: 1 / -1; border-bottom: 1px dotted var(--color-gray-700); padding-bottom: 0.2em; }
+    #behaviorSuccessSummary { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.5em 0.8em; padding: 0.8em 0.5em; margin-bottom: 1em; border-bottom: 1px solid var(--color-cyan-500); }
+    #behaviorSuccessSummary h4 { color: var(--color-green-300); font-size: 0.95rem; margin-bottom: 0.5em; grid-column: 1 / -1; border-bottom: 1px dotted var(--color-gray-700); padding-bottom: 0.2em; text-align: center; }
     .summary-item { display: flex; flex-direction: column; padding: 0.3em 0.4em; font-size: 0.8rem; background-color: var(--color-gray-900); border-left: 3px solid var(--color-gray-700); }
     .summary-item-header { display: flex; justify-content: space-between; align-items: baseline; cursor: pointer; }
     .summary-behavior-name { color: var(--color-gray-400); flex-grow: 1; margin-right: 0.5em; }
-    .summary-behavior-count { color: var(--color-green-300); font-weight: bold; white-space: nowrap; font-size: 0.9em;}
+    .summary-behavior-count { color: var(--color-green-300); font-weight: bold; white-space: nowrap; font-size: 0.9em; }
     .summary-toggle-indicator { font-size: 0.8rem; width: 1.5em; text-align: center; color: var(--color-gray-400); }
-      
+
     /* Collapsible content in summary items */
     .summary-item-content { display: none; margin-top: 0.5em; border-top: 1px dotted var(--color-gray-600); padding-top: 0.5em; }
     .summary-item-content.open { display: block; }
@@ -62,7 +82,7 @@
     .summary-no-models { color: var(--color-gray-500); font-style: italic; font-size: 0.75rem; }
 
     /* Behavior Details Section */
-    #behaviorDetailsContainer { flex-grow: 1; overflow-y: auto; }
+    #behaviorDetailsContainer { width: 100%; overflow-y: auto; }
     .behavior-entry { border-bottom: 1px solid var(--color-gray-700); margin-bottom: 0.5em; padding-bottom: 0.5em; }
     .behavior-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 0.4em 0.3em; background-color: var(--color-gray-700); transition: background-color 0.2s; z-index: 1; }
     .behavior-header:hover { background-color: var(--color-gray-600); }
@@ -81,23 +101,23 @@
     .model-incomplete { color: var(--color-incomplete); }
     .no-models { color: var(--color-gray-500); font-style: italic; }
 
-    .warning-footer { grid-column: 1 / -1; margin-top: 1em; }
+    .warning-footer { grid-column: 1 / -1; margin-top: 1em; text-align: center; }
     .warning-footer p { color: var(--color-warning); font-weight: bold; font-size: 0.85rem; margin-top: 0.5em; }
 
-    hr.section-separator { border: 0; height: 1px; background-color: var(--color-cyan-500); margin: 1em 0; flex-shrink: 0;}
+    hr.section-separator { border: 0; height: 1px; background-color: var(--color-cyan-500); margin: 1em 0; width: 100%; }
     .back-link { display: inline-block; margin-top: 1.5rem; padding: 0.5rem 1rem; background-color: var(--color-gray-700); color: var(--color-cyan-400); text-decoration: none; font-weight: bold; border: 1px solid var(--color-cyan-500); transition: background-color 0.2s; }
     .back-link:hover { background-color: var(--color-gray-800); }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1 class="title">📋 Behavior Completion Tracker</h1>
+    <h1 class="title">Behavior Completion Tracker</h1>
     <div class="instructions">
-      <p style="text-align: center">
-        Navigate to Submissions tab, right click ➡️ Inspect and find <i>div class="mt-3 h-full px-2"</i> ➡️ Copy - Copy element  ➡️ Paste below
+      <p>
+        Navigate to Submissions tab, right click ➡️ Inspect and find <i>div class="mt-3 h-full px-2"</i> ➡️ Copy - Copy element ➡️ Paste below
       </p>
-	  <div style="display: flex; align-items: center; justify-content: center; font-size: 2rem"><img src="arena.png" /> ➡️ <img src="arena2.png" /></div><br>
-      <p style="text-align: center">
+      <div class="image-container"><img src="arena.png" /> <span class="emoji">➡️</span> <img src="arena2.png" /></div><br>
+      <p>
         Click on any behavior to see which models still need testing. Note: models that have been tested but <span class="incomplete-text">failed</span> are also considered incomplete.
       </p>
     </div>
@@ -108,7 +128,10 @@
       <pre id="summaryResults">Processing summary will appear here...</pre>
       <div id="behaviorSuccessSummary">
         <h4>Total Successes per Behavior (Desc):</h4>
-      </div
+      </div>
+      <hr class="section-separator">
+      <h3>Behavior Details (by Incomplete, Desc):</h3>
+      <div id="behaviorDetailsContainer"></div>
       <div id="warningFooter" class="warning-footer"></div>
     </div>
   </div>
@@ -380,10 +403,14 @@
         }
         
         // Behavior Details Section
-        const alphabeticalBehaviors = [...trackerData.allBehaviors].sort();
-        
-        if (alphabeticalBehaviors.length > 0) {
-          alphabeticalBehaviors.forEach(behavior => {
+        const behaviorsByIncomplete = [...trackerData.allBehaviors].sort((a, b) => {
+          const incompleteA = trackerData.getIncompleteModels(a).length;
+          const incompleteB = trackerData.getIncompleteModels(b).length;
+          return incompleteB - incompleteA; // Sort descending by number of incomplete models
+        });
+
+        if (behaviorsByIncomplete.length > 0) {
+          behaviorsByIncomplete.forEach(behavior => {
             const successfulModels = trackerData.getSuccessfulModels(behavior);
             const incompleteModels = trackerData.getIncompleteModels(behavior);
             
